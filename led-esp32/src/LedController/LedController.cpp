@@ -7,8 +7,11 @@ void LedController::setup(){
   pinMode(PIN_B,OUTPUT);
 }
 
-void LedController::setColor(uint8_t r,uint8_t g,uint8_t b){
-  analogWrite(PIN_R,r);
-  analogWrite(PIN_G,g);
-  analogWrite(PIN_B,b);
+void LedController::setColor(Color color){
+  analogWrite(PIN_R,color.r);
+  analogWrite(PIN_G,color.g);
+  analogWrite(PIN_B,color.b);
+}
+
+void LedController::setEffect(Effect effect){
 }

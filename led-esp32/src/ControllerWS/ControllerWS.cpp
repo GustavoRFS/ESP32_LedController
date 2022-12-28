@@ -1,15 +1,16 @@
 #include <ArduinoJson.h>
 
 #include "ControllerWS.h"
+#include "LedController/LedController.h"
 #include "Logger/Logger.h"
+#include "Types/Color.h"
+#include "Types/Effect/Effect.h"
 
 AsyncWebSocket *ws = new AsyncWebSocket("/api/ws");
 
 AsyncWebSocket* ControllerWS::WebSocket(){
   return ws;
 }
-
-
 
 void parseJSONMessage(uint8_t *data, size_t len){
   DynamicJsonDocument doc(3072); //Worst case with custom effect with 20 elements
@@ -20,13 +21,11 @@ void parseJSONMessage(uint8_t *data, size_t len){
 
   const char* event = doc["event"];
 
-  if (event == "color"){
-    return;//parseColor();
-  }
+  JsonObject jsonData = doc["data"];
 
-  JsonObjectConst jsonData = doc["data"];
-
-  return parseEffect(jsonData);
+  if (event == "color") return LedController::setColor(Color::parseFromJSON(jsonData));
+  
+  LedController::setEffect(Effect(jsonData));
 }
 
 void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {

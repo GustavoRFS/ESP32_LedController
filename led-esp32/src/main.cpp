@@ -75,7 +75,7 @@ void setup() {
   LedController::setup();
   SettingsManager::getInstance().setup();
   Color color = *SettingsManager::getInstance().lastColor;
-  LedController::setColor(color.r,color.g,color.b); 
+  LedController::setColor(color); 
 
   WifiManager::setup();
   ControllerWS::registerWebSocket(server);
