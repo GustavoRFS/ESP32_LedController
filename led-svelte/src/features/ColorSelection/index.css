@@ -1,0 +1,9 @@
+.color-info-box,
+.alpha-selector {
+  display: none;
+}
+
+.main-container {
+  height: 204px !important;
+  width: 240px !important;
+}

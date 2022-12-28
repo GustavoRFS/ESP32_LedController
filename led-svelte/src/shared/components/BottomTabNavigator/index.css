@@ -1,0 +1,19 @@
+.title {
+  margin: 0;
+}
+
+.bottom-tab-container {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-tab-item {
+  flex-grow: 1;
+  cursor: pointer;
+}
+
+.item-active {
+  color: #f00;
+}
