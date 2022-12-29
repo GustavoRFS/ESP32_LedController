@@ -6,6 +6,10 @@
 #include "SettingsManager/SettingsManager.h"
 #include "ControllerWS/ControllerWS.h"
 
+// Variables used to be saved at settings if connection is OK
+static String lastSSID;
+static String lastPWD;
+
 void WifiManager::setup(){
   WiFi.onEvent([](arduino_event_id_t event){
     Logger::log(String(event));
@@ -33,6 +37,9 @@ void WifiManager::setup(){
 }
 
 void WifiManager::connect(String ssid, String password){
+  lastSSID = ssid;
+  lastPWD = password;
+
   WiFi.begin(ssid.c_str(),password.c_str()); 
 
   WiFi.onEvent([](arduino_event_id_t event){
@@ -44,8 +51,9 @@ void WifiManager::connect(String ssid, String password){
   WiFi.onEvent([](arduino_event_id_t event){
     WifiManager::beginMDNS();
     ControllerWS::WebSocket()->textAll("wifi-connected");
+    SettingsManager::getInstance().setWifi(lastSSID,lastPWD);
     
-    delay(2000);
+    delay(500);
     
     WifiManager::disableAP();
 

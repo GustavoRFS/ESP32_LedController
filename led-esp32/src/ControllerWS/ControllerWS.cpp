@@ -3,7 +3,7 @@
 #include "ControllerWS.h"
 #include "LedController/LedController.h"
 #include "Logger/Logger.h"
-#include "Types/Color.h"
+#include "Types/Color/Color.h"
 #include "Types/Effect/Effect.h"
 
 AsyncWebSocket *ws = new AsyncWebSocket("/api/ws");
@@ -13,6 +13,15 @@ AsyncWebSocket* ControllerWS::WebSocket(){
 }
 
 void parseJSONMessage(uint8_t *data, size_t len){
+  
+}
+
+void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {
+  // AwsFrameInfo *info = (AwsFrameInfo*)arg;
+  // if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+    
+  // }
+
   DynamicJsonDocument doc(3072); //Worst case with custom effect with 20 elements
 
   DeserializationError error = deserializeJson(doc, data, len);
@@ -23,31 +32,9 @@ void parseJSONMessage(uint8_t *data, size_t len){
 
   JsonObject jsonData = doc["data"];
 
-  if (event == "color") return LedController::setColor(Color::parseFromJSON(jsonData));
+  if (String(event) == "color") return LedController::setColor(Color::parseFromJSON(jsonData));
   
   LedController::setEffect(Effect(jsonData));
-}
-
-void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {
-  // AwsFrameInfo *info = (AwsFrameInfo*)arg;
-  // if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-    
-  // }
-
-  for (size_t i=0;i<len;i++){
-    Serial.write(data[i]);
-  }
-  
-  //Deserialize JSON
-  /*
-  {
-    event:"color"||"effect",
-    data:{
-
-    }
-  }
-  */
-  
 }
 
 void ControllerWS::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,

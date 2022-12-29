@@ -1,6 +1,7 @@
+#pragma once
 #include <ArduinoJson.h>
 
-#include "Types/EffectUnit.h"
+#include "Types/EffectUnit/EffectUnit.h"
 
 class Effect{
   public:

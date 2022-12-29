@@ -17,7 +17,6 @@ void SettingsManager::setup(){
   wifiSSID = nullptr;
   wifiPassword = nullptr;
   lastColor = nullptr;
-  lastEffect = nullptr;
 
   getSettingsFromFile();
 
@@ -31,12 +30,9 @@ void SettingsManager::setDefaults(){
     lastColor->g = 255;
     lastColor->b = 100;
   }
-
-  if (!lastEffect) lastEffect = new String("C");
 }
 
 void SettingsManager::getSettingsFromFile(){
-  Serial.println(SPIFFS.exists(CONFIG_FILENAME));
   if (!SPIFFS.exists(CONFIG_FILENAME)) return;
   
   String configJson = SPIFFS.open(CONFIG_FILENAME).readString();
@@ -57,7 +53,6 @@ void SettingsManager::getSettingsFromFile(){
   
   this->wifiSSID = new String(SSID);
   this->wifiPassword = new String(PWD);
-  this->lastEffect = new String(effect);
 
   if (this->lastColor) delete this->lastColor;
   
@@ -80,7 +75,6 @@ void SettingsManager::saveSettingsToFile(){
   doc["color"]["r"] = this->lastColor->r;
   doc["color"]["g"] = this->lastColor->g;
   doc["color"]["b"] = this->lastColor->b;
-  doc["effect"] = this->lastEffect->c_str();
 
   String output = "";
 
@@ -100,11 +94,19 @@ void SettingsManager::testJsonRead(){
     Serial.println(this->lastColor->g);
     Serial.println(this->lastColor->b);
   }
-  if (this->lastEffect) Serial.println(*this->lastEffect);
 }
 
 SettingsManager& SettingsManager::getInstance(){
   if (!settingsManagerInstance) settingsManagerInstance = new SettingsManager;
 
   return *settingsManagerInstance;
+}
+
+void SettingsManager::setWifi(String SSID,String PWD){
+  if (wifiSSID) delete wifiSSID;
+  if (wifiPassword) delete wifiPassword;
+  wifiSSID=new String(SSID);
+  wifiPassword=new String(PWD);
+
+  saveSettingsToFile();
 }

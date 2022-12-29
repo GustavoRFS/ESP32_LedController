@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "Types/Color.h"
+#include "Types/Color/Color.h"
 
 #define CONFIG_FILENAME "/cfg"
 
@@ -10,10 +10,11 @@ class SettingsManager {
     void testJsonRead();
     void setDefaults();
   public:
+    void setWifi(String SSID,String PWD);
+    void setLastColor(Color color);
     String* wifiSSID;
     String* wifiPassword;
     Color* lastColor;
-    String* lastEffect;
     void setup();
     static SettingsManager& getInstance();
 };
