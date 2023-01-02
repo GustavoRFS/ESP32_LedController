@@ -9,15 +9,16 @@
 #include "Logger/Logger.h"
 #include "SettingsManager/SettingsManager.h"
 #include "LedController/LedController.h"
-
-// #define USE_LITTLEFS
 #include <FS.h>
+
+#include "definitions.h"
+
 #ifdef USE_LITTLEFS
   #define SPIFFS LITTLEFS
   #include <LITTLEFS.h> 
 #else
   #include <SPIFFS.h>
-#endif 
+#endif
 
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -63,7 +64,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 AsyncWebServer server(80);
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(460800);
   Logger::config();
 
   if (!SPIFFS.begin()) {

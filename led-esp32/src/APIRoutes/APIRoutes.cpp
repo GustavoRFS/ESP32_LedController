@@ -5,6 +5,7 @@
 #include "WiFiManager/WifiManager.h"
 #include "APIRoutes.h"
 #include "ControllerWS/ControllerWS.h"
+#include "UpdateService/UpdateService.h"
 
 void APIRoutes::registerRoutes(AsyncWebServer &server){
   server.on("/api/is-connected-to-wifi", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -34,6 +35,14 @@ void APIRoutes::registerRoutes(AsyncWebServer &server){
     WifiManager::connect(String(SSID),String(PWD));
 
     return request->send(200,"text/html","OK");
+  });
+
+  server.on("/api/update", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (!UpdateService::checkForUpdate()) return request->send(400,"text/html","Não há atualizações");
+
+    request->send(200,"text/html","OK");
+
+    UpdateService::update();
   });
 }
 

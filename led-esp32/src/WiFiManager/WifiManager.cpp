@@ -7,8 +7,10 @@
 #include "ControllerWS/ControllerWS.h"
 
 // Variables used to be saved at settings if connection is OK
-static String lastSSID;
-static String lastPWD;
+String lastSSID;
+String lastPWD;
+
+uint64_t *lastDisconnectMillis = nullptr;
 
 void WifiManager::setup(){
   WiFi.onEvent([](arduino_event_id_t event){
@@ -30,7 +32,7 @@ void WifiManager::setup(){
   }
 
   if (!password){
-    password = new String("");
+    password = new String();
   }
   
   WifiManager::connect(*ssid,*password);
@@ -39,13 +41,22 @@ void WifiManager::setup(){
 void WifiManager::connect(String ssid, String password){
   lastSSID = ssid;
   lastPWD = password;
-
+  
+  WiFi.enableSTA(true);
   WiFi.begin(ssid.c_str(),password.c_str()); 
 
   WiFi.onEvent([](arduino_event_id_t event){
-    WifiManager::enableAP();
-
     WiFi.removeEvent(ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+    if (lastDisconnectMillis && *lastDisconnectMillis < millis() + 10000){
+      WiFi.enableSTA(false);
+
+      delete lastDisconnectMillis;
+      lastDisconnectMillis = nullptr;
+    }
+    else if (!lastDisconnectMillis) lastDisconnectMillis = new uint64_t(millis());
+
+    WifiManager::enableAP();
   },ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   WiFi.onEvent([](arduino_event_id_t event){
@@ -53,7 +64,7 @@ void WifiManager::connect(String ssid, String password){
     ControllerWS::WebSocket()->textAll("wifi-connected");
     SettingsManager::getInstance().setWifi(lastSSID,lastPWD);
     
-    delay(500);
+    delay(2000);
     
     WifiManager::disableAP();
 

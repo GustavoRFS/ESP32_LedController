@@ -1,5 +1,6 @@
 #include <ArduinoJson.h>
 
+#include "UpdateService/UpdateService.h"
 #include "ControllerWS.h"
 #include "LedController/LedController.h"
 #include "Logger/Logger.h"
@@ -21,7 +22,6 @@ void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {
   // if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     
   // }
-
   DynamicJsonDocument doc(3072); //Worst case with custom effect with 20 elements
 
   DeserializationError error = deserializeJson(doc, data, len);
@@ -34,7 +34,7 @@ void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {
 
   if (String(event) == "color") return LedController::setColor(Color::parseFromJSON(jsonData));
   
-  LedController::setEffect(Effect(jsonData));
+  // LedController::setEffect(Effect(jsonData));
 }
 
 void ControllerWS::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
@@ -42,6 +42,10 @@ void ControllerWS::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
   switch (type) {
     case WS_EVT_CONNECT:
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      
+      if (UpdateService::checkForUpdate()){
+        client->text("update");
+      }
       break;
     case WS_EVT_DISCONNECT:
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
