@@ -64,7 +64,7 @@ void WifiManager::connect(String ssid, String password){
     ControllerWS::WebSocket()->textAll("wifi-connected");
     SettingsManager::getInstance().setWifi(lastSSID,lastPWD);
     
-    delay(2000);
+    vTaskDelay(2000/portTICK_PERIOD_MS);
     
     WifiManager::disableAP();
 

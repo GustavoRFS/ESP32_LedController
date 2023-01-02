@@ -8,10 +8,15 @@
   #include <SPIFFS.h>
 #endif
 
-void Utils::saveFileFromString(String data,String filePath){
+void Utils::saveFileFromStream(HTTPClient& client,String filePath){
   File file = SPIFFS.open(filePath,"w",true);
 
-  file.print(data);
+  handleStream(client,[&file](uint8_t* buff,size_t size,size_t remaining,size_t total){
+    file.write(buff,size);
+    Serial.println(remaining);
+  });
+
+  Serial.println(filePath+" finished");
 
   file.close();
 }

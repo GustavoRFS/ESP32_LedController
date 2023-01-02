@@ -25,6 +25,6 @@ void SPARoutes::registerRoutes(AsyncWebServer &server){
       url="index.html";
     }
     
-    request->send(SPIFFS, "/web/"+url);
+    request->send(SPIFFS, "/"+url);
   }); 
 }
