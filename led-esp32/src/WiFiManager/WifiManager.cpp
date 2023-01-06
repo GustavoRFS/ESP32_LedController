@@ -5,6 +5,8 @@
 #include "Logger/Logger.h"
 #include "SettingsManager/SettingsManager.h"
 #include "ControllerWS/ControllerWS.h"
+#include "UpdateService/UpdateService.h"
+#include "Utils/Utils.h"
 
 // Variables used to be saved at settings if connection is OK
 String lastSSID;
@@ -64,10 +66,10 @@ void WifiManager::connect(String ssid, String password){
     ControllerWS::WebSocket()->textAll("wifi-connected");
     SettingsManager::getInstance().setWifi(lastSSID,lastPWD);
     
-    vTaskDelay(2000/portTICK_PERIOD_MS);
+    Utils::delay(2000);
     
     WifiManager::disableAP();
-
+    
     WiFi.removeEvent(ARDUINO_EVENT_WIFI_STA_CONNECTED);
   },ARDUINO_EVENT_WIFI_STA_CONNECTED);
 }

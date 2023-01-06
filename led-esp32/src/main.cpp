@@ -9,6 +9,8 @@
 #include "Logger/Logger.h"
 #include "SettingsManager/SettingsManager.h"
 #include "LedController/LedController.h"
+#include "UpdateService/UpdateService.h"
+#include "Utils/Utils.h"
 #include <FS.h>
 
 #include "definitions.h"
@@ -20,65 +22,27 @@
   #include <SPIFFS.h>
 #endif
 
-
-void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
-    Serial.printf("Listing directory: %s\r\n", dirname);
-
-    #ifdef ARDUINO_ARCH_ESP8266
-    File root = fs.open(dirname, "r");
-    #else
-    File root = fs.open(dirname);
-    #endif
-
-    if(!root){
-        Serial.println("- failed to open directory");
-        return;
-    }
-    if(!root.isDirectory()){
-        Serial.println(" - not a directory");
-        return;
-    }
-
-    File file = root.openNextFile();
-    while(file){
-        if(file.isDirectory()){
-            Serial.print("  DIR : ");
-            Serial.println(file.name());
-            if(levels){
-                #ifdef ARDUINO_ARCH_ESP8266
-                listDir(fs, file.fullName(), levels -1);
-                #else
-                listDir(fs, file.path(), levels -1);
-                #endif
-            }
-        } else {
-            Serial.print("  FILE: ");
-            Serial.print(file.name());
-            Serial.print("\tSIZE: ");
-            Serial.println(file.size());
-        }
-        file = root.openNextFile();
-    }
-}
+//TODO: handle empty array github
 
 AsyncWebServer server(80);
 
 void setup() {
+  #ifdef DEVELOPMENT
   Serial.begin(460800);
+  #endif
+
   Logger::config();
 
   if (!SPIFFS.begin()) {
 		Logger::error("SPIFFS MOUNT FAIL");
 	}
-  
-  listDir(SPIFFS,"/",6);
 
   LedController::setup();
   SettingsManager::getInstance().setup();
   Color color = *SettingsManager::getInstance().lastColor;
   LedController::setColor(color); 
-
   WifiManager::setup();
+  UpdateService::setup();
   ControllerWS::registerWebSocket(server);
   APIRoutes::registerRoutes(server);
   SPARoutes::registerRoutes(server);

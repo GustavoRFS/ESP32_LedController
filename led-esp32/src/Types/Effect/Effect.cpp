@@ -37,7 +37,10 @@ Effect::Effect(JsonObject &doc){
   }
 
   String effect = doc["effect"];
+  
+  #ifdef DEVELOPMENT
   Serial.println(effect);
+  #endif
 }
 
 void Effect::addKeyColor(EffectUnit keyColor,uint8_t position){

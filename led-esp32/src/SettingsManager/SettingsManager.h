@@ -1,3 +1,4 @@
+#pragma once
 #include <Arduino.h>
 #include "Types/Color/Color.h"
 
@@ -7,7 +8,6 @@ class SettingsManager {
   private:
     void getSettingsFromFile();
     void saveSettingsToFile();
-    void testJsonRead();
     void setDefaults();
   public:
     void setWifi(String SSID,String PWD);

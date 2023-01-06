@@ -3,6 +3,8 @@
 #include "SettingsManager.h"
 #include "Logger/Logger.h"
 
+#include "definitions.h"
+
 #include <FS.h>
 #ifdef USE_LITTLEFS
   #define SPIFFS LITTLEFS
@@ -45,8 +47,6 @@ void SettingsManager::getSettingsFromFile(){
     return;
   }
 
-  this->testJsonRead();
-
   const char* SSID = doc["SSID"];
   const char* PWD = doc["PWD"];
   const char* effect = doc["effect"];
@@ -62,8 +62,6 @@ void SettingsManager::getSettingsFromFile(){
   this->lastColor->r = color["r"]; 
   this->lastColor->g = color["g"]; 
   this->lastColor->b = color["b"]; 
-  
-  this->testJsonRead();
 }
 
 void SettingsManager::saveSettingsToFile(){
@@ -86,15 +84,6 @@ void SettingsManager::saveSettingsToFile(){
   configFile.close();
 }
 
-void SettingsManager::testJsonRead(){
-  if (this->wifiSSID) Serial.println(*this->wifiSSID);
-  if (this->wifiPassword) Serial.println(*this->wifiPassword);
-  if (this->lastColor){
-    Serial.println(this->lastColor->r);
-    Serial.println(this->lastColor->g);
-    Serial.println(this->lastColor->b);
-  }
-}
 
 SettingsManager& SettingsManager::getInstance(){
   if (!settingsManagerInstance) settingsManagerInstance = new SettingsManager;

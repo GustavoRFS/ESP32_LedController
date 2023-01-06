@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 
 #include "Types/EffectUnit/EffectUnit.h"
+#include "definitions.h"
 
 class Effect{
   public:

@@ -1,3 +1,4 @@
+#pragma once
 #include <ArduinoJson.h>
 
 #include "AssetMetadata.h"
@@ -10,15 +11,23 @@ class Assets{
       size=0;
       assets=NULL;
     }  
-    Assets(JsonArray doc){
+    Assets(JsonArray doc,bool includeFirmware=true){
       size=doc.size();
-      Serial.println(size);
+      if (!includeFirmware) size--;
+      
       assets = new AssetMetadata[size];
+
+      uint8_t assetsCounter=0;
       for (uint8_t i=0;i<doc.size();i++){
         String url = doc[i][F("browser_download_url")].as<String>();
         String name = doc[i][F("name")].as<String>();
         
-        assets[i] = AssetMetadata(url,name);
+        bool shouldNotAddToAssets = !includeFirmware && name=="firmware.bin";
+
+        if (!shouldNotAddToAssets) {
+          assets[assetsCounter] = AssetMetadata(url,name);
+          assetsCounter++;
+        }
       }
     }
 };

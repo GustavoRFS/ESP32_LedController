@@ -1,3 +1,4 @@
+#pragma once
 #include "Types/GitHubAssets/Assets.h"
 
 class UpdateService{
@@ -6,6 +7,6 @@ class UpdateService{
     static void update();
     static void setup();
   private:
-    static void downloadUpdateAssets();
-    static Assets getAllUpdateAssets();
+    static bool downloadUpdateAssets();
+    static Assets* getAllUpdateAssets(bool includeFirmware);
 };

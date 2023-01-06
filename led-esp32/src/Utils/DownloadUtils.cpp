@@ -20,7 +20,7 @@ String Utils::getDownloadURL(String url){
   return downloadURL;
 }
 
-void Utils::downloadFile(String url,String fileName){
+void Utils::downloadFile(String url,String fileName,String message){
   HTTPClient http;
   http.begin(getDownloadURL(url));
   http.useHTTP10(true);
@@ -28,7 +28,7 @@ void Utils::downloadFile(String url,String fileName){
 
   if (code!=200) return;
 
-  saveFileFromStream(http,"/"+fileName);
+  saveFileFromStream(http,"/"+fileName,message);
 
   http.end();
 }

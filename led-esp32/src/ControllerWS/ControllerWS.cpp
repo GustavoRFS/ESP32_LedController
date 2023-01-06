@@ -41,14 +41,18 @@ void ControllerWS::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
                             void *arg, uint8_t *data, size_t len) {
   switch (type) {
     case WS_EVT_CONNECT:
+      #ifdef DEVELOPMENT
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      
+      #endif
+
       if (UpdateService::checkForUpdate()){
         client->text("update");
       }
       break;
     case WS_EVT_DISCONNECT:
+      #ifdef DEVELOPMENT
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      #endif
       break;
     case WS_EVT_DATA:
       handleWebSocketMessage( data, len);

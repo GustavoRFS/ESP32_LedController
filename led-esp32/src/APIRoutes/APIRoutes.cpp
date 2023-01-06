@@ -7,6 +7,12 @@
 #include "ControllerWS/ControllerWS.h"
 #include "UpdateService/UpdateService.h"
 
+#include "definitions.h"
+
+#ifdef DEVELOPMENT
+  #include "Utils/Utils.h"
+#endif
+
 void APIRoutes::registerRoutes(AsyncWebServer &server){
   server.on("/api/is-connected-to-wifi", HTTP_GET, [](AsyncWebServerRequest *request){
     String response;
@@ -44,5 +50,11 @@ void APIRoutes::registerRoutes(AsyncWebServer &server){
 
     UpdateService::update();
   });
+
+  #ifdef DEVELOPMENT
+  server.on("/api/dirs", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200,"text/html",Utils::listDirectories("/",4));
+  });
+  #endif
 }
 

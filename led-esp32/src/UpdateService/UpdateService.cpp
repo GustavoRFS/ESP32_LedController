@@ -4,9 +4,10 @@
 #include <FS.h>
 
 #include "UpdateService.h"
-#include "definitions.h"
 #include "Utils/Utils.h"
 #include "ControllerWS/ControllerWS.h"
+
+#include "definitions.h"
 
 #ifdef USE_LITTLEFS
   #define SPIFFS LITTLEFS
@@ -15,79 +16,29 @@
   #include <SPIFFS.h>
 #endif
 
-void updateFirmware(void* params){
-  Assets* assets = (Assets*) params;
-
-  File updateLock = SPIFFS.open("/update.lck","w",true);
-  updateLock.println(VERSION);
-  updateLock.close();
-
-  String assetUrl = "";
-
-  for (uint8_t i=0;i<assets->size;i++) {
-    if (assets->assets[i].name.endsWith(".bin")) assetUrl = assets->assets[i].url;
-  }
-
-  if (!Update.begin(UPDATE_SIZE_UNKNOWN)){
-    Update.printError(Serial);
-  }
-
-  String downloadURL=Utils::getDownloadURL(assetUrl);
-
-  HTTPClient http;
-
-  http.begin(downloadURL);
-  http.useHTTP10(true);
-  int code = http.GET();
-
-  if (code!=200) return;
-
-  AsyncWebSocket* ws = ControllerWS::WebSocket();
-
-  bool sendMessage = ws->count()>0;
-
-  Utils::handleStream(http,[sendMessage,ws](uint8_t* buff,size_t size,size_t remaining,size_t total){
-    Update.write(buff,size);
-
-    if (sendMessage) ws->textAll("Baixando firmware: "+String((float(total-remaining)/total)*100)+"%");
-
-    Serial.println("Baixando firmware: "+String((float(total-remaining)/total)*100)+"%");
-  });
-
-  Serial.println("Fim do stream");
-
-  Update.end();
-
-  if (Update.hasError()){
-    ws->textAll("Erro: " + String(Update.errorString()));
-  }
-  else ESP.restart();
-
-  vTaskDelete(NULL);
-}
-
-void downloadAssets(void* params){
-  Assets* assets = (Assets*) params;
-  for (uint8_t i=0;i<assets->size;i++) {
-    if (!assets->assets[i].name.endsWith(".bin")) Utils::downloadFile(assets->assets[i].url,assets->assets[i].name);
-    Serial.println(assets->assets[i].url+" "+assets->assets[i].name);
-  }
-  vTaskDelete(NULL);
-}
+bool* hasUpdates = NULL;
 
 void UpdateService::setup(){
-  if (!SPIFFS.exists("update.lck")) return;
+  xTaskCreate([](void* params){
+    uint64_t startTaskMillis = millis();
+    while(!WiFi.isConnected() || startTaskMillis+5000 < millis());
 
-  File updateLock = SPIFFS.open("update.lck");
+    if (!SPIFFS.exists("/update.lck")) vTaskDelete(NULL);
+    
+    File updateLock = SPIFFS.open("/update.lck");
+    String updateVersion = updateLock.readString();
 
-  String updateVersion = updateLock.readString();
+    bool firmwareUpdateSuccess = updateVersion == VERSION;
 
-  bool firmwareUpdateSuccess = updateVersion == VERSION;
-
-  if (firmwareUpdateSuccess) UpdateService::downloadUpdateAssets();
+    if (firmwareUpdateSuccess && UpdateService::downloadUpdateAssets()) SPIFFS.remove("/update.lck");
+    
+    vTaskDelete(NULL);
+  },"Setup Updates",12000,NULL,1,NULL);
 }
 
 bool UpdateService::checkForUpdate(){
+  if (hasUpdates != NULL) return *hasUpdates;
+
   HTTPClient http;
 
   http.useHTTP10(true);
@@ -108,10 +59,12 @@ bool UpdateService::checkForUpdate(){
 
   http.end();
 
-  return doc[0][F("tag_name")] != VERSION; 
+  hasUpdates = new bool(doc[0][F("tag_name")] != VERSION);
+
+  return *hasUpdates; 
 }
 
-Assets UpdateService::getAllUpdateAssets(){
+Assets* UpdateService::getAllUpdateAssets(bool includeFirmware=true){
   HTTPClient http;
 
   http.useHTTP10(true);
@@ -119,7 +72,7 @@ Assets UpdateService::getAllUpdateAssets(){
 
   int code = http.GET();
 
-  if (code != 200) return Assets();
+  if (code != 200) return new Assets();
 
   StaticJsonDocument<80> filter;
   JsonObject filter_0 = filter.createNestedObject();
@@ -133,19 +86,82 @@ Assets UpdateService::getAllUpdateAssets(){
 
   JsonArray newVersionAssets = doc[0][F("assets")];
 
-  Assets assets = Assets(newVersionAssets);
-
-  doc.clear();
+  Assets *assets = new Assets(newVersionAssets,includeFirmware);
 
   return assets;
 }
 
 void UpdateService::update(){
-  Assets assets = getAllUpdateAssets();
-  xTaskCreate(updateFirmware,"Download assets",10000,(void*)&assets,1,NULL);
+  Assets *assets = getAllUpdateAssets();
+  xTaskCreate([](void* params){
+    Assets* assets = (Assets*) params;
+
+    File updateLock = SPIFFS.open("/update.lck","w",true);
+    updateLock.print(VERSION);
+    updateLock.close();
+
+    String assetUrl = "";
+
+    for (uint8_t i=0;i<assets->size;i++) {
+      if (assets->assets[i].name=="firmware.bin") assetUrl = assets->assets[i].url;
+    }
+
+    if (!Update.begin(UPDATE_SIZE_UNKNOWN)){
+      Update.printError(Serial);
+    }
+
+    String downloadURL=Utils::getDownloadURL(assetUrl);
+
+    HTTPClient http;
+
+    http.begin(downloadURL);
+    http.useHTTP10(true);
+    int code = http.GET();
+
+    if (code!=200) return;
+
+    AsyncWebSocket* ws = ControllerWS::WebSocket();
+
+    bool sendMessage = ws->count()>0;
+
+    Utils::handleStream(http,[sendMessage,ws](uint8_t* buff,size_t size,size_t remaining,size_t total){
+      Update.write(buff,size);
+
+      if (sendMessage) ws->textAll("Baixando firmware: "+String((float(total-remaining)/total)*100)+"%");
+    });
+
+    Update.end(true);
+
+    if (Update.hasError()){
+      ws->textAll("Erro: " + String(Update.errorString()));
+    }
+    else {
+      ws->textAll("Baixando firmware: 100%. Reiniciando...");
+      Utils::delay(500);
+      ESP.restart();
+    }
+
+    delete assets;
+
+    vTaskDelete(NULL);
+  },"Download assets",10000,(void*)assets,1,NULL);
 }
 
-void UpdateService::downloadUpdateAssets(){
-  Assets assets = getAllUpdateAssets();
-  xTaskCreate(downloadAssets,"Download assets",10000,(void*)&assets,1,NULL);
+bool UpdateService::downloadUpdateAssets(){
+  Assets *assets = getAllUpdateAssets(false);
+  
+  if (assets->size==0) return false;
+
+  xTaskCreate([](void* params){
+    Assets* assets = (Assets*) params;
+
+    for (uint8_t i=0;i<assets->size;i++) {
+      Utils::downloadFile(assets->assets[i].url,assets->assets[i].name,"Arquivo "+String(i+1)+"/"+String(assets->size));
+    }
+
+    delete assets;
+    vTaskDelete(NULL);
+  },"UpdateService::downloadUpdateAssets",9000,(void*)assets,1,NULL);
+
+  return true;
 }

@@ -1,11 +1,9 @@
+#pragma once
 #include <Arduino.h>
 
 #include "Types/Color/Color.h"
 #include "Types/Effect/Effect.h"
-
-#define PIN_R 26
-#define PIN_G 25
-#define PIN_B 33
+#include "definitions.h"
 
 class LedController{
   public:

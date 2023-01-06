@@ -1,11 +1,12 @@
+#pragma once
 #include <HTTPClient.h>
-
-
 class Utils{
   public:
-    static void saveFileFromStream(HTTPClient& client,String filename);
+    static void saveFileFromStream(HTTPClient& client,String filename, String message);
     static String getDownloadURL(String url);
-    static void downloadFile(String url,String fileName);
+    static void delay(uint64_t milliseconds);
+    static void downloadFile(String url,String fileName,String message);
+    static String listDirectories(String dirname, uint8_t levels);
     template<typename Func> static void handleStream(HTTPClient& client,Func callback){
       int total = client.getSize();
       int remaining = total;
@@ -26,5 +27,18 @@ class Utils{
 
         remaining -= BUFF_SIZE;
       }
+    }
+    template<typename Func> static void scheduleRoutineTask(Func task,uint64_t intervalMilliseconds,uint32_t stackDepth=1000,UBaseType_t priority=1){
+      xTaskCreate([task,intervalMilliseconds](void* params){
+        while(true){
+          task();
+          Utils::delay(intervalMilliseconds);
+        }
+      },
+      "scheduleRoutineTask",
+      stackDepth,
+      NULL,
+      priority,
+      NULL);
     }
 };
