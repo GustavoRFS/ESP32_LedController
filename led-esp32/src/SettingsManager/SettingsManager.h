@@ -15,6 +15,7 @@ class SettingsManager {
     String* wifiSSID;
     String* wifiPassword;
     Color* lastColor;
+    bool FSError;
     void setup();
-    static SettingsManager& getInstance();
+    static SettingsManager* getInstance();
 };

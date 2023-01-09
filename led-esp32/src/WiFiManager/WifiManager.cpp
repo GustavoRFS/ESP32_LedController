@@ -4,7 +4,7 @@
 #include "WifiManager.h"
 #include "Logger/Logger.h"
 #include "SettingsManager/SettingsManager.h"
-#include "ControllerWS/ControllerWS.h"
+#include "Controllers/ControllerWS/ControllerWS.h"
 #include "UpdateService/UpdateService.h"
 #include "Utils/Utils.h"
 
@@ -23,10 +23,10 @@ void WifiManager::setup(){
     WifiManager::beginMDNS();
   });
 
-  SettingsManager settings = SettingsManager::getInstance();
+  SettingsManager* settings = SettingsManager::getInstance();
 
-  String* ssid = settings.wifiSSID;
-  String* password = settings.wifiPassword;
+  String* ssid = settings->wifiSSID;
+  String* password = settings->wifiPassword;
 
   if (!ssid){
     WifiManager::enableAP();
@@ -64,7 +64,7 @@ void WifiManager::connect(String ssid, String password){
   WiFi.onEvent([](arduino_event_id_t event){
     WifiManager::beginMDNS();
     ControllerWS::WebSocket()->textAll("wifi-connected");
-    SettingsManager::getInstance().setWifi(lastSSID,lastPWD);
+    SettingsManager::getInstance()->setWifi(lastSSID,lastPWD);
     
     Utils::delay(2000);
     

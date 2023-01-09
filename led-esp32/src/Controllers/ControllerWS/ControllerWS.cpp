@@ -13,15 +13,7 @@ AsyncWebSocket* ControllerWS::WebSocket(){
   return ws;
 }
 
-void parseJSONMessage(uint8_t *data, size_t len){
-  
-}
-
-void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {
-  // AwsFrameInfo *info = (AwsFrameInfo*)arg;
-  // if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-    
-  // }
+void ControllerWS::handleWebSocketMessage(uint8_t *data, size_t len) {
   DynamicJsonDocument doc(3072); //Worst case with custom effect with 20 elements
 
   DeserializationError error = deserializeJson(doc, data, len);
@@ -32,6 +24,8 @@ void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {
 
   JsonObject jsonData = doc["data"];
 
+  ws->textAll(data,len);
+
   if (String(event) == "color") return LedController::setColor(Color::parseFromJSON(jsonData));
   
   // LedController::setEffect(Effect(jsonData));
@@ -40,25 +34,17 @@ void ControllerWS::handleWebSocketMessage( uint8_t *data, size_t len) {
 void ControllerWS::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
                             void *arg, uint8_t *data, size_t len) {
   switch (type) {
+    #ifdef DEVELOPMENT
     case WS_EVT_CONNECT:
-      #ifdef DEVELOPMENT
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      #endif
-
-      if (UpdateService::checkForUpdate()){
-        client->text("update");
-      }
       break;
     case WS_EVT_DISCONNECT:
-      #ifdef DEVELOPMENT
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
-      #endif
       break;
+    #endif
+    
     case WS_EVT_DATA:
-      handleWebSocketMessage( data, len);
-      break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
+      handleWebSocketMessage(data, len);
       break;
   }
 }

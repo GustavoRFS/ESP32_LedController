@@ -4,8 +4,8 @@
 
 #include "WiFiManager/WifiManager.h"
 #include "SPARoutes/SPARoutes.h"
-#include "ControllerWS/ControllerWS.h"
-#include "APIRoutes/APIRoutes.h"
+#include "Controllers/ControllerWS/ControllerWS.h"
+#include "Controllers/Api/Api.h"
 #include "Logger/Logger.h"
 #include "SettingsManager/SettingsManager.h"
 #include "LedController/LedController.h"
@@ -22,8 +22,6 @@
   #include <SPIFFS.h>
 #endif
 
-//TODO: handle empty array github
-
 AsyncWebServer server(80);
 
 void setup() {
@@ -32,22 +30,30 @@ void setup() {
   #endif
 
   Logger::config();
+  SettingsManager* settings = SettingsManager::getInstance();
 
   if (!SPIFFS.begin()) {
-		Logger::error("SPIFFS MOUNT FAIL");
-	}
+    Logger::error("SPIFFS MOUNT FAIL");
+    settings->FSError = true;
+  }
+  else settings->FSError = false;
+
 
   LedController::setup();
-  SettingsManager::getInstance().setup();
-  Color color = *SettingsManager::getInstance().lastColor;
+  settings->setup();
+  Color color = *settings->lastColor;
   LedController::setColor(color); 
-  WifiManager::setup();
-  UpdateService::setup();
   ControllerWS::registerWebSocket(server);
   APIRoutes::registerRoutes(server);
   SPARoutes::registerRoutes(server);
+  WifiManager::setup();
+  UpdateService::setup();
 
   server.begin();
+
+  if (settings->FSError){
+    // Recovery mode
+  }
 }
  
 void loop() {

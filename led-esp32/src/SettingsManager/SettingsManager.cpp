@@ -85,10 +85,10 @@ void SettingsManager::saveSettingsToFile(){
 }
 
 
-SettingsManager& SettingsManager::getInstance(){
-  if (!settingsManagerInstance) settingsManagerInstance = new SettingsManager;
+SettingsManager* SettingsManager::getInstance(){
+  if (!settingsManagerInstance) settingsManagerInstance = new SettingsManager();
 
-  return *settingsManagerInstance;
+  return settingsManagerInstance;
 }
 
 void SettingsManager::setWifi(String SSID,String PWD){

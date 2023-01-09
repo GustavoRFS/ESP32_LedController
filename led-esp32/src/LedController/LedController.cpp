@@ -13,5 +13,5 @@ void LedController::setColor(Color color){
   analogWrite(PIN_B,color.b);
 }
 
-void LedController::setEffect(Effect effect){
+void LedController::setEffect(Effect* effect){
 }

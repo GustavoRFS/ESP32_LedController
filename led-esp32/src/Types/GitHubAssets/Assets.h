@@ -19,8 +19,8 @@ class Assets{
 
       uint8_t assetsCounter=0;
       for (uint8_t i=0;i<doc.size();i++){
-        String url = doc[i][F("browser_download_url")].as<String>();
-        String name = doc[i][F("name")].as<String>();
+        String url = doc[i]["browser_download_url"].as<String>();
+        String name = doc[i]["name"].as<String>();
         
         bool shouldNotAddToAssets = !includeFirmware && name=="firmware.bin";
 

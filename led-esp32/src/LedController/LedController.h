@@ -9,6 +9,10 @@ class LedController{
   public:
     static void setup();
     static void setColor(Color color);
-    static void setEffect(Effect effect);
+    static void setEffect(Effect* effect);
+    static void turnOn();
+    static void turnOff();
+    static void increaseBrightness();
+    static void decreaseBrightness();
   private:
 };

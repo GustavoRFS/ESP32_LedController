@@ -5,7 +5,7 @@
 
 #include "UpdateService.h"
 #include "Utils/Utils.h"
-#include "ControllerWS/ControllerWS.h"
+#include "Controllers/ControllerWS/ControllerWS.h"
 
 #include "definitions.h"
 
@@ -30,7 +30,7 @@ void UpdateService::setup(){
 
     bool firmwareUpdateSuccess = updateVersion == VERSION;
 
-    if (firmwareUpdateSuccess && UpdateService::downloadUpdateAssets()) SPIFFS.remove("/update.lck");
+    if (firmwareUpdateSuccess && UpdateService::downloadAssets()) SPIFFS.remove("/update.lck");
     
     vTaskDelete(NULL);
   },"Setup Updates",12000,NULL,1,NULL);
@@ -42,7 +42,7 @@ bool UpdateService::checkForUpdate(){
   HTTPClient http;
 
   http.useHTTP10(true);
-  http.begin(F(GITHUB_REPO_RELEASES_URL));
+  http.begin(GITHUB_REPO_RELEASES_URL);
 
   int code = http.GET();
 
@@ -51,7 +51,7 @@ bool UpdateService::checkForUpdate(){
   StaticJsonDocument<80> filter;
   JsonObject filter_0 = filter.createNestedObject();
 
-  filter_0[F("tag_name")] = true;
+  filter_0["tag_name"] = true;
 
   StaticJsonDocument<256> doc;
 
@@ -59,7 +59,12 @@ bool UpdateService::checkForUpdate(){
 
   http.end();
 
-  hasUpdates = new bool(doc[0][F("tag_name")] != VERSION);
+  if (doc.size()==0){
+    hasUpdates = new bool(false);
+    return *hasUpdates;
+  }
+
+  hasUpdates = new bool(doc[0]["tag_name"] != VERSION);
 
   return *hasUpdates; 
 }
@@ -68,7 +73,7 @@ Assets* UpdateService::getAllUpdateAssets(bool includeFirmware=true){
   HTTPClient http;
 
   http.useHTTP10(true);
-  http.begin(F(GITHUB_REPO_RELEASES_URL));
+  http.begin(GITHUB_REPO_RELEASES_URL);
 
   int code = http.GET();
 
@@ -84,12 +89,14 @@ Assets* UpdateService::getAllUpdateAssets(bool includeFirmware=true){
 
   deserializeJson(doc,http.getStream(),DeserializationOption::Filter(filter));
 
-  JsonArray newVersionAssets = doc[0][F("assets")];
+  JsonArray newVersionAssets = doc[0]["assets"];
 
   Assets *assets = new Assets(newVersionAssets,includeFirmware);
 
   return assets;
 }
+
+
 
 void UpdateService::update(){
   Assets *assets = getAllUpdateAssets();
@@ -147,7 +154,7 @@ void UpdateService::update(){
   },"Download assets",10000,(void*)assets,1,NULL);
 }
 
-bool UpdateService::downloadUpdateAssets(){
+bool UpdateService::downloadAssets(){
   Assets *assets = getAllUpdateAssets(false);
   
   if (assets->size==0) return false;
@@ -161,7 +168,7 @@ bool UpdateService::downloadUpdateAssets(){
 
     delete assets;
     vTaskDelete(NULL);
-  },"UpdateService::downloadUpdateAssets",9000,(void*)assets,1,NULL);
+  },"UpdateService::downloadAssets",9000,(void*)assets,1,NULL);
 
   return true;
 }

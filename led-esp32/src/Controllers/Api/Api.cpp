@@ -3,8 +3,8 @@
 
 #include "Logger/Logger.h"
 #include "WiFiManager/WifiManager.h"
-#include "APIRoutes.h"
-#include "ControllerWS/ControllerWS.h"
+#include "Api.h"
+#include "Controllers/ControllerWS/ControllerWS.h"
 #include "UpdateService/UpdateService.h"
 
 #include "definitions.h"
@@ -51,10 +51,25 @@ void APIRoutes::registerRoutes(AsyncWebServer &server){
     UpdateService::update();
   });
 
+  server.on("/api/has-updates", HTTP_GET, [](AsyncWebServerRequest *request){
+    if (!UpdateService::checkForUpdate()) return request->send(404,"text/html","Não há atualizações");
+
+    request->send(200,"text/html","OK");
+  });
+
   #ifdef DEVELOPMENT
   server.on("/api/dirs", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200,"text/html",Utils::listDirectories("/",4));
   });
   #endif
+
+  server.on("/api/download-assets", HTTP_POST, [](AsyncWebServerRequest *request){
+    request->send(200,"text/html","OK");
+
+    UpdateService::downloadAssets();
+  });
+  server.on("/api/*", HTTP_ANY, [](AsyncWebServerRequest *request){
+    request->send(404,"text/html","Cannot "+String(request->methodToString())+" "+request->url());
+  });
 }
 

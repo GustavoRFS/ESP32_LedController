@@ -6,7 +6,7 @@ class UpdateService{
     static bool checkForUpdate();
     static void update();
     static void setup();
+    static bool downloadAssets();
   private:
-    static bool downloadUpdateAssets();
     static Assets* getAllUpdateAssets(bool includeFirmware);
 };

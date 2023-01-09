@@ -6,5 +6,6 @@
 #define PIN_R 26
 #define PIN_G 25
 #define PIN_B 33
+#define IR_PIN 27
 
 #define USE_LITTLEFS
