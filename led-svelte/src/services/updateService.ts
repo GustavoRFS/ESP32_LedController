@@ -14,7 +14,21 @@ export const getUpdates = async () => {
 };
 
 export const hasUpdates = async () => {
-  const { status } = await EspApi.get("/has-updates");
+  try {
+    await EspApi.get("/has-updates");
+  } catch (error) {
+    return false;
+  }
 
-  return status === 200;
+  return true;
+};
+
+export const startUpdate = async () => {
+  try {
+    await EspApi.post("/update");
+  } catch (error) {
+    return false;
+  }
+
+  return true;
 };

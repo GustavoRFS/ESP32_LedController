@@ -58,11 +58,12 @@
 
     loading = false;
 
-    updateAvailable = true;
-
     if (!isConnectedToWifi) return;
 
     if (await hasUpdates()) updateAvailable = true;
+    updateAvailable = true;
+
+    updateOpened = updateAvailable;
   });
 </script>
 

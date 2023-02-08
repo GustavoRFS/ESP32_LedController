@@ -3,7 +3,7 @@
   import Modal from "../Modal/index.svelte";
   import Button from "@smui/button";
   import { onMount } from "svelte";
-  import { getUpdates } from "../../../services/updateService";
+  import { getUpdates, startUpdate } from "../../../services/updateService";
   import LoadingIndicator from "../LoadingIndicator/index.svelte";
   import UpdatingModal from "../UpdatingModal/index.svelte";
 
@@ -13,6 +13,16 @@
   let loading = false;
 
   let updateNotes = "";
+
+  let updateLoading = false;
+
+  const update = async () => {
+    updateLoading = true;
+    await startUpdate();
+    setTimeout(() => {
+      updateLoading = false;
+    }, 3000);
+  };
 
   onMount(async () => {
     loading = true;
@@ -37,7 +47,9 @@
       <SvelteMarkdown options={{}} source={updateNotes} />
     </div>
     <div style="margin:10px 0px">
-      <Button style="margin-right:10px" variant="raised">Atualizar</Button
+      <Button on:click={update} style="margin-right:10px" variant="raised"
+        >{#if updateLoading}<LoadingIndicator loading={updateLoading} />
+        {:else}Atualizar{/if}</Button
       ><Button on:click={toggleModal} variant="text">Fechar</Button>
     </div>
   </div>

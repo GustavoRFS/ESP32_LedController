@@ -1,18 +1,22 @@
 <script lang="ts">
   import LinearProgress from "@smui/linear-progress";
+  import IconButton from "@smui/icon-button";
+  import Snackbar, { Label, Actions } from "@smui/snackbar";
   import Modal from "../Modal/index.svelte";
   import ws from "../../../services/webSocket";
   import { onMount } from "svelte";
   import { getUpdates } from "../../../services/updateService";
   import "./index.css";
 
-  let isOpened = true;
+  let isOpened = false;
 
   let file = "";
   let updatePercentage = 0;
 
   let updateAssets = [];
   let currentFileIndex = 1;
+
+  let snackbar: Snackbar;
 
   onMount(() => {
     getUpdates().then(([{ assets }]) => {
@@ -24,6 +28,9 @@
         isOpened = true;
         file = name;
         updatePercentage = percentage;
+
+        if (percentage === 100 && name === "firmware.bin")
+          snackbar && snackbar.open();
 
         currentFileIndex =
           updateAssets.findIndex((asset) => asset.name === name) + 1;
@@ -49,4 +56,10 @@
       </div>
     </div>
   </div>
+  <Snackbar bind:this={snackbar}>
+    <Label>Reiniciando... Perai que jajá tem mais</Label>
+    <Actions>
+      <IconButton class="material-icons" title="Dismiss">close</IconButton>
+    </Actions>
+  </Snackbar>
 </Modal>
