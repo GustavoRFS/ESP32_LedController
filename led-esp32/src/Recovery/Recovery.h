@@ -1,4 +1,5 @@
-class Recovery{
-  public:
-    static bool isRecoveryMode();
+class Recovery
+{
+public:
+  static bool isRecoveryMode();
 };

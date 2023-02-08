@@ -10,16 +10,18 @@
 #include "definitions.h"
 
 #ifdef USE_LITTLEFS
-  #define SPIFFS LITTLEFS
-  #include <LITTLEFS.h> 
+#define SPIFFS LITTLEFS
+#include <LITTLEFS.h>
 #else
-  #include <SPIFFS.h>
+#include <SPIFFS.h>
 #endif
 
-bool* hasUpdates = NULL;
+bool *hasUpdates = NULL;
 
-void UpdateService::setup(){
-  xTaskCreate([](void* params){
+void UpdateService::setup()
+{
+  xTaskCreate([](void *params)
+              {
     uint64_t startTaskMillis = millis();
     while(!WiFi.isConnected() || startTaskMillis+5000 < millis());
 
@@ -32,12 +34,14 @@ void UpdateService::setup(){
 
     if (firmwareUpdateSuccess && UpdateService::downloadAssets()) SPIFFS.remove("/update.lck");
     
-    vTaskDelete(NULL);
-  },"Setup Updates",12000,NULL,1,NULL);
+    vTaskDelete(NULL); },
+              "Setup Updates", 12000, NULL, 1, NULL);
 }
 
-bool UpdateService::checkForUpdate(){
-  if (hasUpdates != NULL) return *hasUpdates;
+bool UpdateService::checkForUpdate()
+{
+  if (hasUpdates != NULL)
+    return *hasUpdates;
 
   HTTPClient http;
 
@@ -46,7 +50,8 @@ bool UpdateService::checkForUpdate(){
 
   int code = http.GET();
 
-  if (code != 200) return false;
+  if (code != 200)
+    return false;
 
   StaticJsonDocument<80> filter;
   JsonObject filter_0 = filter.createNestedObject();
@@ -55,21 +60,23 @@ bool UpdateService::checkForUpdate(){
 
   StaticJsonDocument<256> doc;
 
-  deserializeJson(doc,http.getStream(),DeserializationOption::Filter(filter));
+  deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter));
 
   http.end();
 
-  if (doc.size()==0){
+  if (doc.size() == 0)
+  {
     hasUpdates = new bool(false);
     return *hasUpdates;
   }
 
   hasUpdates = new bool(doc[0]["tag_name"] != VERSION);
 
-  return *hasUpdates; 
+  return *hasUpdates;
 }
 
-Assets* UpdateService::getAllUpdateAssets(bool includeFirmware=true){
+Assets *UpdateService::getAllUpdateAssets(bool includeFirmware = true)
+{
   HTTPClient http;
 
   http.useHTTP10(true);
@@ -77,7 +84,8 @@ Assets* UpdateService::getAllUpdateAssets(bool includeFirmware=true){
 
   int code = http.GET();
 
-  if (code != 200) return new Assets();
+  if (code != 200)
+    return new Assets();
 
   StaticJsonDocument<80> filter;
   JsonObject filter_0 = filter.createNestedObject();
@@ -87,20 +95,20 @@ Assets* UpdateService::getAllUpdateAssets(bool includeFirmware=true){
 
   StaticJsonDocument<2048> doc;
 
-  deserializeJson(doc,http.getStream(),DeserializationOption::Filter(filter));
+  deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter));
 
   JsonArray newVersionAssets = doc[0]["assets"];
 
-  Assets *assets = new Assets(newVersionAssets,includeFirmware);
+  Assets *assets = new Assets(newVersionAssets, includeFirmware);
 
   return assets;
 }
 
-
-
-void UpdateService::update(){
+void UpdateService::update()
+{
   Assets *assets = getAllUpdateAssets();
-  xTaskCreate([](void* params){
+  xTaskCreate([](void *params)
+              {
     Assets* assets = (Assets*) params;
 
     File updateLock = SPIFFS.open("/update.lck","w",true);
@@ -134,41 +142,44 @@ void UpdateService::update(){
     Utils::handleStream(http,[sendMessage,ws](uint8_t* buff,size_t size,size_t remaining,size_t total){
       Update.write(buff,size);
 
-      if (sendMessage) ws->textAll("Baixando firmware: "+String((float(total-remaining)/total)*100)+"%");
+      if (sendMessage) ws->textAll("{\"event\":\"updating\",\"data\":\"{\"name\":\"firmware\",\"percentage\":"+String((float(total-remaining)/total)*100)+"}}");
     });
 
     Update.end(true);
 
     if (Update.hasError()){
-      ws->textAll("Erro: " + String(Update.errorString()));
+      ws->textAll("{\"event\":\"updateError\",\"data\":\"Erro: " + String(Update.errorString())+"\"}");
     }
     else {
-      ws->textAll("Baixando firmware: 100%. Reiniciando...");
+      ws->textAll("{\"event\":\"updating\",\"data\":\"{\"name\":\"firmware\",\"percentage\":100}}");
       Utils::delay(500);
       ESP.restart();
     }
 
     delete assets;
 
-    vTaskDelete(NULL);
-  },"Download assets",10000,(void*)assets,1,NULL);
+    vTaskDelete(NULL); },
+              "Download assets", 10000, (void *)assets, 1, NULL);
 }
 
-bool UpdateService::downloadAssets(){
+bool UpdateService::downloadAssets()
+{
   Assets *assets = getAllUpdateAssets(false);
-  
-  if (assets->size==0) return false;
 
-  xTaskCreate([](void* params){
+  if (assets->size == 0)
+    return false;
+
+  xTaskCreate([](void *params)
+              {
     Assets* assets = (Assets*) params;
 
     for (uint8_t i=0;i<assets->size;i++) {
-      Utils::downloadFile(assets->assets[i].url,assets->assets[i].name,"Arquivo "+String(i+1)+"/"+String(assets->size));
+      Utils::downloadFile(assets->assets[i].url,assets->assets[i].name);
     }
 
     delete assets;
-    vTaskDelete(NULL);
-  },"UpdateService::downloadAssets",9000,(void*)assets,1,NULL);
+    vTaskDelete(NULL); },
+              "UpdateService::downloadAssets", 9000, (void *)assets, 1, NULL);
 
   return true;
 }

@@ -6,54 +6,85 @@
 #include "Logger/Logger.h"
 #include "Types/Color/Color.h"
 #include "Types/Effect/Effect.h"
+#include "Types/Gradient.h"
 
 AsyncWebSocket *ws = new AsyncWebSocket("/api/ws");
 
-AsyncWebSocket* ControllerWS::WebSocket(){
+AsyncWebSocket *ControllerWS::WebSocket()
+{
   return ws;
 }
 
-void ControllerWS::handleWebSocketMessage(uint8_t *data, size_t len) {
-  DynamicJsonDocument doc(3072); //Worst case with custom effect with 20 elements
+uint64_t lastMessage = 0;
+
+void ControllerWS::handleWebSocketMessage(uint8_t *data, size_t len, AsyncWebSocketClient *sender)
+{
+  if (millis() - lastMessage < 35)
+    return;
+  lastMessage = millis();
+
+  DynamicJsonDocument doc(3072); // Worst case with custom effect with 20 elements
 
   DeserializationError error = deserializeJson(doc, data, len);
 
-  if (error) return Logger::error("deserializeJson() failed: " + String(error.c_str()));
+  if (error)
+    return Logger::error("deserializeJson() failed: " + String(error.c_str()));
 
-  const char* event = doc["event"];
+  broadcastExcludingSender(doc.as<String>(), sender->id());
 
-  JsonObject jsonData = doc["data"];
+  const char *event = doc["event"];
 
-  ws->textAll(data,len);
-
-  if (String(event) == "color") return LedController::setColor(Color::parseFromJSON(jsonData));
-  
-  // LedController::setEffect(Effect(jsonData));
+  if (String(event) == "color")
+  {
+    JsonObject jsonData = doc["data"];
+    LedController::setColor(Color(jsonData));
+  }
+  else if (String(event) == "gradient")
+  {
+    JsonArray jsonArray = doc["data"];
+    Gradient *gradient = new Gradient(jsonArray);
+    // doc.clear();
+    LedController::setGradient(gradient);
+  }
+  // else if (String(event)=="effect") LedController::setColor(Color(jsonData));
 }
 
 void ControllerWS::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-                            void *arg, uint8_t *data, size_t len) {
-  switch (type) {
-    #ifdef DEVELOPMENT
-    case WS_EVT_CONNECT:
-      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      break;
-    case WS_EVT_DISCONNECT:
-      Serial.printf("WebSocket client #%u disconnected\n", client->id());
-      break;
-    #endif
-    
-    case WS_EVT_DATA:
-      handleWebSocketMessage(data, len);
-      break;
+                           void *arg, uint8_t *data, size_t len)
+{
+  switch (type)
+  {
+#ifdef DEVELOPMENT
+  case WS_EVT_CONNECT:
+    Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+    break;
+  case WS_EVT_DISCONNECT:
+    Serial.printf("WebSocket client #%u disconnected\n", client->id());
+    break;
+#endif
+
+  case WS_EVT_DATA:
+    handleWebSocketMessage(data, len, client);
+    break;
   }
 }
 
-void ControllerWS::setup(){
+void ControllerWS::setup()
+{
   ws->onEvent(onEvent);
 }
 
-void ControllerWS::registerWebSocket(AsyncWebServer& server){
+void ControllerWS::registerWebSocket(AsyncWebServer &server)
+{
   setup();
   server.addHandler(ws);
+}
+
+void ControllerWS::broadcastExcludingSender(String message, uint16_t senderId)
+{
+  for (const auto &c : ws->getClients())
+  {
+    if (c->status() == WS_CONNECTED && c->id() != senderId)
+      c->text(message);
+  }
 }

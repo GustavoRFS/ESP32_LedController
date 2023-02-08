@@ -3,33 +3,64 @@
   import IconButton from "@smui/icon-button/src/IconButton.svelte";
   import Paper from "@smui/paper/src/Paper.svelte";
   import Ripple from "@smui/ripple";
-  import { onMount } from "svelte";
+  import type { Favorite } from "../../shared/@types/Color";
+  import colorStore from "../../shared/stores/colors";
+  import ws from "../../services/webSocket";
+
+  import "./index.css";
 
   let isDeleting = false;
-  let colors = [];
+  let favorites: Favorite[] = [];
+
+  colorStore.subscribe((state) => {
+    favorites = state.favorites;
+  });
 
   const toggleIsDeleting = () => (isDeleting = !isDeleting);
 
-  const deleteColor = (indexToRemove: number) => {
-    colors = colors.filter((color, index) => index !== indexToRemove);
+  const favoriteColorStyle = (favorite: Favorite) => {
+    if (favorite.type === "color") {
+      return `background:rgb(${favorite.value.r},${favorite.value.g},${favorite.value.b});`;
+    } else {
+      let style = `background:linear-gradient(45deg`;
 
-    localStorage.setItem("colors", JSON.stringify(colors));
+      favorite.value.forEach((gradient, index) => {
+        style += `,rgb(${gradient.color.r},${gradient.color.g},${gradient.color.b}) ${gradient.percentage}%`;
+      });
+
+      return `${style})`;
+    }
   };
 
-  onMount(() => {
-    colors = JSON.parse(localStorage.getItem("colors")) ?? [];
-  });
+  const changeColor = (favorite: Favorite) => () => {
+    if (favorite.type === "color") {
+      ws.send({ event: "color", data: favorite.value });
+    } else {
+      ws.send({ event: "gradient", data: favorite.value });
+    }
+  };
+
+  const deleteColor = (indexToRemove: number) => {
+    colorStore.update((state) => {
+      const newFavorites = state.favorites.filter(
+        (favorite, index) => index !== indexToRemove
+      );
+      return { ...state, favorites: newFavorites };
+    });
+  };
 </script>
 
 <div
   style="display:flex;flex-wrap:wrap;justify-content:center;gap:40px;padding:10px;"
 >
-  {#each colors as color, index (index)}
+  {#each favorites as favorite, index (index)}
     <div style="position:relative">
       <Paper variant="raised" style="padding:0;border-radius:4px">
         <div
           use:Ripple={{ surface: true, color: "primary" }}
-          style={`width:40px;height:40px;border-radius:4px;cursor:pointer;background-color:rgb(${color.r},${color.g},${color.b})`}
+          class="favorite-color"
+          style={favoriteColorStyle(favorite)}
+          on:click={changeColor(favorite)}
         />
         {#if isDeleting}
           <div

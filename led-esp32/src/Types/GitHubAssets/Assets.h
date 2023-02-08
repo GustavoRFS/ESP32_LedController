@@ -30,4 +30,7 @@ class Assets{
         }
       }
     }
+    ~Assets(){
+      if (assets)delete[] assets;
+    }
 };

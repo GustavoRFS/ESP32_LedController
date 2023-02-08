@@ -7,6 +7,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: fixed;
+  bottom: 0;
+  background-color: var(--background-color);
 }
 
 .bottom-tab-item {
@@ -15,5 +18,5 @@
 }
 
 .item-active {
-  color: #f00;
+  color: #6200ee;
 }

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include <FS.h>
 
 #include "WiFiManager/WifiManager.h"
 #include "SPARoutes/SPARoutes.h"
@@ -11,52 +12,54 @@
 #include "LedController/LedController.h"
 #include "UpdateService/UpdateService.h"
 #include "Utils/Utils.h"
-#include <FS.h>
 
 #include "definitions.h"
 
 #ifdef USE_LITTLEFS
-  #define SPIFFS LITTLEFS
-  #include <LITTLEFS.h> 
+#define SPIFFS LITTLEFS
+#include <LITTLEFS.h>
 #else
-  #include <SPIFFS.h>
+#include <SPIFFS.h>
 #endif
 
 AsyncWebServer server(80);
 
-void setup() {
-  #ifdef DEVELOPMENT
+void setup()
+{
+#ifdef DEVELOPMENT
   Serial.begin(460800);
-  #endif
+#endif
 
   Logger::config();
-  SettingsManager* settings = SettingsManager::getInstance();
+  SettingsManager *settings = SettingsManager::getInstance();
 
-  if (!SPIFFS.begin()) {
+  if (!SPIFFS.begin())
+  {
     Logger::error("SPIFFS MOUNT FAIL");
     settings->FSError = true;
   }
-  else settings->FSError = false;
-
+  else
+    settings->FSError = false;
 
   LedController::setup();
   settings->setup();
   Color color = *settings->lastColor;
-  LedController::setColor(color); 
+  LedController::setColor(color);
   ControllerWS::registerWebSocket(server);
-  APIRoutes::registerRoutes(server);
+  Api::registerRoutes(server);
   SPARoutes::registerRoutes(server);
   WifiManager::setup();
   UpdateService::setup();
 
   server.begin();
 
-  if (settings->FSError){
+  if (settings->FSError)
+  {
     // Recovery mode
   }
 }
- 
-void loop() {
+
+void loop()
+{
   vTaskDelete(NULL);
 }
-

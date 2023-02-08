@@ -13,7 +13,17 @@
   #include "Utils/Utils.h"
 #endif
 
-void APIRoutes::registerRoutes(AsyncWebServer &server){
+void Api::sendResponse(int code,String responseBody,AsyncWebServerRequest *request){
+  AsyncWebServerResponse* response=request->beginResponse(code,"text/html",responseBody);
+
+  #ifdef DEVELOPMENT
+  response->addHeader("Access-Control-Allow-Origin","*");
+  #endif
+  
+  request->send(response);
+} 
+
+void Api::registerRoutes(AsyncWebServer &server){
   server.on("/api/is-connected-to-wifi", HTTP_GET, [](AsyncWebServerRequest *request){
     String response;
 
@@ -24,7 +34,7 @@ void APIRoutes::registerRoutes(AsyncWebServer &server){
       response="false";
     }
     
-    request->send(200,"text/html",response);
+    sendResponse(200,response,request);
   });
 
   server.on("/api/connect-to-wifi",HTTP_POST,[](AsyncWebServerRequest* request){},NULL,
@@ -40,36 +50,36 @@ void APIRoutes::registerRoutes(AsyncWebServer &server){
 
     WifiManager::connect(String(SSID),String(PWD));
 
-    return request->send(200,"text/html","OK");
+    sendResponse(200,"OK",request);
   });
 
   server.on("/api/update", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (!UpdateService::checkForUpdate()) return request->send(400,"text/html","Não há atualizações");
+    if (!UpdateService::checkForUpdate()) return sendResponse(400,"Não há atualizações",request);
 
-    request->send(200,"text/html","OK");
+    sendResponse(200,"OK",request);
 
     UpdateService::update();
   });
 
   server.on("/api/has-updates", HTTP_GET, [](AsyncWebServerRequest *request){
-    if (!UpdateService::checkForUpdate()) return request->send(404,"text/html","Não há atualizações");
-
-    request->send(200,"text/html","OK");
+    if (!UpdateService::checkForUpdate()) return sendResponse(404,"Não há atualizações",request);
+    
+    sendResponse(200,"OK",request);
   });
 
   #ifdef DEVELOPMENT
   server.on("/api/dirs", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200,"text/html",Utils::listDirectories("/",4));
+    sendResponse(200,Utils::listDirectories("/",4),request);
   });
   #endif
 
   server.on("/api/download-assets", HTTP_POST, [](AsyncWebServerRequest *request){
-    request->send(200,"text/html","OK");
+    sendResponse(200,"OK",request);
 
     UpdateService::downloadAssets();
   });
   server.on("/api/*", HTTP_ANY, [](AsyncWebServerRequest *request){
-    request->send(404,"text/html","Cannot "+String(request->methodToString())+" "+request->url());
+    sendResponse(404,"Cannot "+String(request->methodToString())+" "+request->url(),request);
   });
 }
 

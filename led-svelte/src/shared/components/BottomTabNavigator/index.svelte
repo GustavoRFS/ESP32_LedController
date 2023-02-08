@@ -9,6 +9,7 @@
 
   const items = [
     { title: "Cores", icon: "palette", link: "/" },
+    { title: "Gradiente", icon: "gradient", link: "/gradient" },
     { title: "Efeitos", icon: "flare", link: "/effects" },
     { title: "Favoritos", icon: "favorite", link: "/favorites" },
   ];

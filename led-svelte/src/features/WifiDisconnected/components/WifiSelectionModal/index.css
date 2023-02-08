@@ -1,0 +1,5 @@
+.mdc-snackbar__surface,
+.mdc-snackbar__surface button {
+  background-color: #ff3e00;
+  color: #fff;
+}

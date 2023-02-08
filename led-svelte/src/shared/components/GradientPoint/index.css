@@ -1,0 +1,33 @@
+.color-square {
+  position: absolute;
+  background-color: var(--button-background-color);
+  width: 25px;
+  height: 25px;
+  border: 1px solid hsla(222deg, 14%, 47%, 0.3);
+  border-radius: 5px;
+  border-bottom: none;
+  margin-left: -13px;
+  top: -35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: move;
+}
+
+.color-display {
+  width: 15px;
+  height: 15px;
+}
+
+.svg-arrow {
+  position: absolute;
+  left: 0;
+  top: 22px;
+  width: 25px;
+  height: 40px;
+}
+
+.svg-arrow-line {
+  stroke: hsla(222deg, 14%, 47%, 0.3);
+  fill: var(--button-background-color);
+}

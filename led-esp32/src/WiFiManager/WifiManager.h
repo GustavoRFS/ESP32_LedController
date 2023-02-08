@@ -7,4 +7,6 @@ class WifiManager{
     static void enableAP();
     static void disableAP();
     static void beginMDNS();
+    static void startSSIDsBroadcast();
+    static void stopSSIDsBroadcast();
 };

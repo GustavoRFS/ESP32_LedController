@@ -1,0 +1,12 @@
+.effect-card {
+  padding: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 400px;
+  max-width: 90%;
+}
+
+.card-paper {
+  background-color: var(--button-background-color) !important;
+  color: var(--color) !important;
+}

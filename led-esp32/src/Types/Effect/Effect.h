@@ -11,9 +11,9 @@ class Effect{
     Effect(){}
     Effect(uint8_t size);
     Effect(EffectUnit* effectUnit,uint8_t size);
-    Effect(JsonObject &doc);
+    Effect(JsonDocument &doc);
     void addKeyColor(EffectUnit effectUnit, uint8_t position);
     ~Effect();
   private:
-    static Effect parseCustomEffectFromJSON(JsonObject &doc);
+    static Effect parseCustomEffectFromJSON(JsonDocument &doc);
 };
