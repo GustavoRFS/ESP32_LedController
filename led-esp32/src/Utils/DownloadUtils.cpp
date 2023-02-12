@@ -32,7 +32,7 @@ void Utils::downloadFile(String url, String fileName)
   if (code != 200)
     return;
 
-  saveFileFromStream(http, "/" + fileName);
+  saveFileFromStream(http, "/" + String(VERSION) + "/" + fileName);
 
   http.end();
 }

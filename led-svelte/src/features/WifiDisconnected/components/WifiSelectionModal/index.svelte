@@ -18,6 +18,7 @@
   let loading = false;
 
   let snackbarError: Snackbar;
+  let hasSnackbarError = false;
 
   export let wifi: Wifi;
   export let isOpened = false;
@@ -36,6 +37,10 @@
     connectToWifi(wifi.name, password);
 
     errorTimeout = setTimeout(() => {
+      hasSnackbarError = true;
+      setTimeout(() => {
+        hasSnackbarError = false;
+      }, 3000);
       snackbarError.open();
       loading = false;
     }, 6000);
@@ -85,7 +90,11 @@
       >
     </div>
   </div>
-  <Snackbar bind:this={snackbarError} class="demo-error">
+  <Snackbar
+    bind:this={snackbarError}
+    class="demo-error"
+    style={`${hasSnackbarError ? "" : "display:none;"}`}
+  >
     <Label>Não foi possível conectar à {wifi.name}.</Label>
     <Actions>
       <IconButton class="material-icons" title="Dismiss">close</IconButton>

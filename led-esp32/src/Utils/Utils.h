@@ -1,5 +1,6 @@
 #pragma once
 #include <HTTPClient.h>
+#include "definitions.h"
 class Utils
 {
 public:
@@ -8,6 +9,7 @@ public:
   static void delay(uint64_t milliseconds);
   static void downloadFile(String url, String fileName);
   static String listDirectories(String dirname, uint8_t levels);
+  static void rmOldVersionDir();
   template <typename Func>
   static void handleStream(HTTPClient &client, Func callback)
   {

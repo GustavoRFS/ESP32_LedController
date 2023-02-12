@@ -100,7 +100,7 @@
         <WifiDisconnected onIgnore={() => (ignoreConnection = true)} />
       </Route>
     {:else}
-      <Route path="/effects" component={EffectsSelection} />
+      <!-- <Route path="/effects" component={EffectsSelection} /> -->
       <Route path="/favorites" component={Favorites} />
       <Route path="/gradient" component={Gradient} />
       <Route component={ColorSelection} />

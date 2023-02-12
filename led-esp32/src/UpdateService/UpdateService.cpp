@@ -93,7 +93,7 @@ Assets *UpdateService::getAllUpdateAssets(bool includeFirmware = true)
   filter_0["assets"][0]["browser_download_url"] = true;
   filter_0["assets"][0]["name"] = true;
 
-  StaticJsonDocument<2048> doc;
+  StaticJsonDocument<4096> doc;
 
   deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter));
 
@@ -142,7 +142,7 @@ void UpdateService::update()
     Utils::handleStream(http,[sendMessage,ws](uint8_t* buff,size_t size,size_t remaining,size_t total){
       Update.write(buff,size);
 
-      if (sendMessage) ws->textAll("{\"event\":\"updating\",\"data\":\"{\"name\":\"firmware\",\"percentage\":"+String((float(total-remaining)/total)*100)+"}}");
+      if (sendMessage) ws->textAll("{\"event\":\"updating\",\"data\":{\"name\":\"firmware\",\"percentage\":"+String((float(total-remaining)/total)*100)+"}}");
     });
 
     Update.end(true);
@@ -151,7 +151,7 @@ void UpdateService::update()
       ws->textAll("{\"event\":\"updateError\",\"data\":\"Erro: " + String(Update.errorString())+"\"}");
     }
     else {
-      ws->textAll("{\"event\":\"updating\",\"data\":\"{\"name\":\"firmware\",\"percentage\":100}}");
+      ws->textAll("{\"event\":\"updating\",\"data\":{\"name\":\"firmware\",\"percentage\":100}}");
       Utils::delay(500);
       ESP.restart();
     }
