@@ -68,7 +68,7 @@
       ><Label>Adicionar cor aos favoritos</Label></Button
     >
   </p>
-  <p>
+  <!-- <p>
     <Button variant="raised"><Label>-</Label></Button>
     Brilho
     <Button variant="raised"><Label>+</Label></Button>
@@ -77,5 +77,5 @@
     <Button variant="raised"><Label>-</Label></Button>
     Velocidade
     <Button variant="raised"><Label>+</Label></Button>
-  </p>
+  </p> -->
 </div>

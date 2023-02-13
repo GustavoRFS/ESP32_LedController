@@ -16,8 +16,7 @@ public:
     int total = client.getSize();
     int remaining = total;
 
-    int BUFF_SIZE = 1024;
-
+    int BUFF_SIZE = 5012;
     uint8_t buff[BUFF_SIZE] = {0};
     WiFiClient *stream = client.getStreamPtr();
 

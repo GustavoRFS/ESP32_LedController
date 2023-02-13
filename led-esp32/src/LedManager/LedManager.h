@@ -6,7 +6,7 @@
 #include "Types/Gradient.h"
 #include "definitions.h"
 
-class LedController
+class LedManager
 {
 public:
   static void setup();

@@ -49,6 +49,7 @@ void Utils::saveFileFromStream(HTTPClient &client, String filePath)
 
 void Utils::rmOldVersionDir()
 {
+  // Not working
   File root = SPIFFS.open("/");
 
   File file = root.openNextFile();
@@ -57,7 +58,7 @@ void Utils::rmOldVersionDir()
   {
     if (file.name() != VERSION && file.isDirectory())
     {
-      SPIFFS.rmdir(file.name());
+      SPIFFS.rmdir(String(file.name()));
     }
     file = root.openNextFile();
   }

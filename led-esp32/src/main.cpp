@@ -9,7 +9,7 @@
 #include "Controllers/Api/Api.h"
 #include "Logger/Logger.h"
 #include "SettingsManager/SettingsManager.h"
-#include "LedController/LedController.h"
+#include "LedManager/LedManager.h"
 #include "UpdateService/UpdateService.h"
 #include "Utils/Utils.h"
 
@@ -41,10 +41,10 @@ void setup()
   else
     settings->FSError = false;
 
-  LedController::setup();
+  LedManager::setup();
   settings->setup();
   Color color = *settings->lastColor;
-  LedController::setColor(color);
+  LedManager::setColor(color);
   ControllerWS::registerWebSocket(server);
   Api::registerRoutes(server);
   SPARoutes::registerRoutes(server);

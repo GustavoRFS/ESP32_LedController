@@ -1,26 +1,26 @@
 #include "RemoteControlCommand.h"
-#include "LedController/LedController.h"
+#include "LedManager/LedManager.h"
 
 void RemoteControlCommand::performCommand()
 {
   if (color)
   {
-    return LedController::setColor(*color);
+    return LedManager::setColor(*color);
   }
 
   if (effect)
   {
-    return LedController::setEffect(effect);
+    return LedManager::setEffect(effect);
   }
 
   if (switchPower)
   {
-    *switchPower ? LedController::turnOff() : LedController::turnOn();
+    *switchPower ? LedManager::turnOff() : LedManager::turnOn();
   }
 
   if (changeBrightness)
   {
-    *changeBrightness > 0 ? LedController::increaseBrightness() : LedController::decreaseBrightness();
+    *changeBrightness > 0 ? LedManager::increaseBrightness() : LedManager::decreaseBrightness();
   }
 }
 

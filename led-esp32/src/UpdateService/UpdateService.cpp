@@ -23,13 +23,13 @@ void UpdateService::setup()
   xTaskCreate([](void *params)
               {
     uint64_t startTaskMillis = millis();
-    while(!WiFi.isConnected() || startTaskMillis+5000 < millis());
+    while(!WiFi.isConnected() || startTaskMillis+10000 < millis());
 
     if (!SPIFFS.exists("/update.lck")) vTaskDelete(NULL);
     
     File updateLock = SPIFFS.open("/update.lck");
     String updateVersion = updateLock.readString();
-
+    updateLock.close();
     bool firmwareUpdateSuccess = updateVersion == VERSION;
 
     if (firmwareUpdateSuccess && UpdateService::downloadAssets()) SPIFFS.remove("/update.lck");
@@ -87,9 +87,10 @@ Assets *UpdateService::getAllUpdateAssets(bool includeFirmware = true)
   if (code != 200)
     return new Assets();
 
-  StaticJsonDocument<80> filter;
+  StaticJsonDocument<160> filter;
   JsonObject filter_0 = filter.createNestedObject();
 
+  filter_0["tag_name"] = true;
   filter_0["assets"][0]["browser_download_url"] = true;
   filter_0["assets"][0]["name"] = true;
 
@@ -99,7 +100,9 @@ Assets *UpdateService::getAllUpdateAssets(bool includeFirmware = true)
 
   JsonArray newVersionAssets = doc[0]["assets"];
 
-  Assets *assets = new Assets(newVersionAssets, includeFirmware);
+  String version = doc[0]["tag_name"].as<String>();
+
+  Assets *assets = new Assets(newVersionAssets, version, includeFirmware);
 
   return assets;
 }
@@ -112,7 +115,7 @@ void UpdateService::update()
     Assets* assets = (Assets*) params;
 
     File updateLock = SPIFFS.open("/update.lck","w",true);
-    updateLock.print(VERSION);
+    updateLock.print(assets->version);
     updateLock.close();
 
     String assetUrl = "";
@@ -172,12 +175,13 @@ bool UpdateService::downloadAssets()
   xTaskCreate([](void *params)
               {
     Assets* assets = (Assets*) params;
-
+    
     for (uint8_t i=0;i<assets->size;i++) {
       Utils::downloadFile(assets->assets[i].url,assets->assets[i].name);
     }
 
     delete assets;
+    
     vTaskDelete(NULL); },
               "UpdateService::downloadAssets", 9000, (void *)assets, 1, NULL);
 

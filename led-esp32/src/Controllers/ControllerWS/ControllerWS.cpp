@@ -2,7 +2,7 @@
 
 #include "UpdateService/UpdateService.h"
 #include "ControllerWS.h"
-#include "LedController/LedController.h"
+#include "LedManager/LedManager.h"
 #include "Logger/Logger.h"
 #include "Types/Color/Color.h"
 #include "Types/Effect/Effect.h"
@@ -37,16 +37,16 @@ void ControllerWS::handleWebSocketMessage(uint8_t *data, size_t len, AsyncWebSoc
   if (String(event) == "color")
   {
     JsonObject jsonData = doc["data"];
-    LedController::setColor(Color(jsonData));
+    LedManager::setColor(Color(jsonData));
   }
   else if (String(event) == "gradient")
   {
     JsonArray jsonArray = doc["data"];
     Gradient *gradient = new Gradient(jsonArray);
     // doc.clear();
-    LedController::setGradient(gradient);
+    LedManager::setGradient(gradient);
   }
-  // else if (String(event)=="effect") LedController::setColor(Color(jsonData));
+  // else if (String(event)=="effect") LedManager::setColor(Color(jsonData));
 }
 
 void ControllerWS::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,

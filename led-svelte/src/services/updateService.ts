@@ -32,13 +32,11 @@ export const getUpdates = async () => {
 };
 
 export const hasUpdates = async () => {
-  try {
-    await EspApi.get("/has-updates");
-  } catch (error) {
-    return false;
-  }
+  const { data } = await EspApi.get("/has-updates");
 
-  return true;
+  console.log(data)
+
+  return data;
 };
 
 export const startUpdate = async () => {

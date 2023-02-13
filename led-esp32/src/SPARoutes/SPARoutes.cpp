@@ -18,7 +18,7 @@ void SPARoutes::registerRoutes(AsyncWebServer &server)
 
     url.replace("/assets","");
 
-    if (url=="/" || !SPIFFS.exists("/"+String(VERSION)+url)) url="/index.html";
+    if (url=="/" || !SPIFFS.exists("/dist"+url)) url="/index.html";
     
-    request->send(SPIFFS,"/"+String(VERSION)+url); });
+    request->send(SPIFFS,"/dist"+url); });
 }

@@ -61,7 +61,6 @@
     if (!isConnectedToWifi) return;
 
     if (await hasUpdates()) updateAvailable = true;
-    updateAvailable = true;
 
     updateOpened = updateAvailable;
   });
@@ -87,9 +86,9 @@
           /></IconButton
         ><UpdateModal isOpened={updateOpened} toggleModal={toggleUpdateModal} />
       {/if}
-      <IconButton on:click={toggleSettingsModal} color="primary"
+      <!-- <IconButton on:click={toggleSettingsModal} color="primary"
         ><Icon class="material-icons">settings</Icon></IconButton
-      >
+      > -->
     </div>
     <SettingsModal
       isOpened={settingsOpened}

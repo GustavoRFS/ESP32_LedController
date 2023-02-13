@@ -20,7 +20,7 @@
 
   onMount(() => {
     getUpdates().then(([{ assets }]) => {
-      updateAssets = assets.filter((asset) => asset.name !== "firmware.bin");
+      updateAssets = assets;
     });
     ws.onMessage<{ name: string; percentage: number }>(
       "updating",

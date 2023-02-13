@@ -1,23 +1,25 @@
 #include "FastLED.h"
 
-#include "LedController.h"
+#include "LedManager.h"
 #include "Utils/Utils.h"
 
 CRGBArray<NUM_LEDS> leds;
 
-void LedController::setup()
+void LedManager::setup()
 {
   FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 1500);
+  FastLED.setCorrection(CRGB(0xFFB0F0));
 }
 
-void LedController::setColor(Color color)
+void LedManager::setColor(Color color)
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
     leds[i].setRGB(color.r, color.g, color.b);
   FastLED.show();
 }
 
-void LedController::setGradient(Gradient *gradient)
+void LedManager::setGradient(Gradient *gradient)
 {
   xTaskCreate([](void *params)
               {
@@ -73,6 +75,6 @@ void LedController::setGradient(Gradient *gradient)
               "setGradient", 10000, gradient, 1, NULL);
 }
 
-void LedController::setEffect(Effect *effect)
+void LedManager::setEffect(Effect *effect)
 {
 }
