@@ -1,6 +1,6 @@
 #pragma once
 #define DEVELOPMENT
-#define VERSION "beta-0.1.1"
+#define VERSION "beta-0.1.0"
 #define GITHUB_REPO_RELEASES_URL "https://api.github.com/repos/GustavoRFS/ESP32_LedController/releases"
 
 #define NUM_LEDS 150

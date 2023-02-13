@@ -9,7 +9,7 @@
 
   export let onIgnore: () => void;
 
-  let wifis: Wifi[] = [{ name: "Rede 1", signal: 100 }];
+  let wifis: Wifi[] = [];
 
   onMount(() => {
     ws.onMessage<Wifi[]>("wifiScan", (data) => {
